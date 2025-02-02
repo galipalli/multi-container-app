@@ -1,5 +1,6 @@
 const express = require('express');
 const Todo = require('./../models/Todo');
+const mongoose = require('mongoose');
 
 const router = express.Router();
 
@@ -30,5 +31,14 @@ router.post('/todo/destroy', async (req, res) => {
     res.redirect('/');
 });
 
+// Add this new route to check MongoDB connection status
+router.get('/health', async (req, res) => {
+    try {
+        const status = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+        res.json({ mongodb: status });
+    } catch (error) {
+        res.json({ mongodb: 'disconnected' });
+    }
+});
 
 module.exports = router;

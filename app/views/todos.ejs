@@ -6,74 +6,159 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Todo App</title>
-    <link rel="stylesheet" href="//stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="//unpkg.com/@preline/overlay@1.5.0/dist/overlay.min.js"></script>
+    <script src="//cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            plugins: [
+                require('@preline/overlay'),
+            ],
+        }
+    </script>
 </head>
 
-<body>
-    <div class="container m-5 p-2 rounded mx-auto bg-light shadow">
-        
+<body class="bg-gray-50">
+    <div class="max-w-4xl mx-auto my-10 px-4">
         <!-- App title section -->
-        <div class="row m-1 p-4">
-            <div class="col">
-                <div class="p-1 h1 text-primary text-center mx-auto display-inline-block">
-                    <u>Todo App</u>
-                </div>
-            </div>
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-bold text-gray-800">Todo App</h1>
         </div>
-            <div class="row m-1 p-3">
-                <div class="col col-11 mx-auto">
-                    <form method="POST" action="/" autocomplete="off">
-                        <div class="row m-1 p-3">
-                            <div class="col col-11 mx-auto">
-                                <div class="row bg-white rounded shadow-sm p-2 add-todo-wrapper align-items-center justify-content-center">
-                                    <div class="col">
-                                        <input class="form-control form-control-lg border-0 add-todo-input bg-transparent rounded" type="text" name="task" placeholder="Add new Task">
-                                    </div>
-                                    <div class="col-auto px-0 mx-0 mr-2">
-                                        <button type="submit" class="btn btn-primary">Add</button>
-                                    </div>
-                                </div>
-                            </div>
+
+        <!-- Services Health Section -->
+        <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Services Health</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Todo App Service -->
+                <div class="p-4 border rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Todo App</p>
+                            <p class="text-xs text-gray-500">Port: 3000</p>
                         </div>
-                    </form>
-                    <hr>
-                    <div class="row">
-                        <div class="col-12">
-                            <% if(Object.keys(tasks).length> 0) { %>
-                                <ul class="nav flex-column">
-                                    <% tasks.forEach(todo=> { %>
-                                        <li class="nav-item">
-                                            <div class="d-flex justify-content-between py-1">
-                                                <div class="d-flex flex-row">
-                                                    <div>
-                                                        <%= todo.task %>
-                                                            <p class="text-muted"><small>
-                                                                    <%= moment(todo.created_at).fromNow() %>
-                                                                </small></p>
-                                                    </div>
-                                                </div>
-                                                <a href="javascript:;" onclick="this.children[0].submit()"
-                                                    class="text-danger">
-                                                    <form method="POST" action="/todo/destroy">
-                                                        <input type="hidden" name="_key" value="<%= todo._id %>" />
-                                                    </form>
-                                                    <i class="fa fa-trash-o"></i>
-                                                </a>
-                                            </div>
-                                        </li>
-                                        <% }) %>
-                                </ul>
-                                <% } else { %>
-                                    <div class="text-center"><strong>Please add some task.</strong></div>
-                                    <% }%>
+                        <div id="todo-app-status" class="flex items-center">
+                            <span class="flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-green-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                            </span>
+                            <span class="ml-2 text-sm text-green-600">Running</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MongoDB Service -->
+                <div class="p-4 border rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">MongoDB</p>
+                            <p class="text-xs text-gray-500">Port: 27017</p>
+                        </div>
+                        <div id="mongodb-status" class="flex items-center">
+                            <span class="flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-green-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                            </span>
+                            <span class="ml-2 text-sm text-green-600">Running</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Add Todo Form -->
+        <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+            <form method="POST" action="/" autocomplete="off">
+                <div class="flex gap-4">
+                    <input type="text" 
+                           name="task" 
+                           class="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none" 
+                           placeholder="Add new Task">
+                    <button type="submit" 
+                            class="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none">
+                        Add
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Todo List -->
+        <div class="bg-white rounded-xl shadow-sm">
+            <% if(Object.keys(tasks).length > 0) { %>
+                <ul class="divide-y divide-gray-200">
+                    <% tasks.forEach(todo => { %>
+                        <li class="p-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-gray-800"><%= todo.task %></p>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        <%= moment(todo.created_at).fromNow() %>
+                                    </p>
+                                </div>
+                                <a href="javascript:;" 
+                                   onclick="this.children[0].submit()" 
+                                   class="text-red-500 hover:text-red-700">
+                                    <form method="POST" action="/todo/destroy">
+                                        <input type="hidden" name="_key" value="<%= todo._id %>" />
+                                    </form>
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </a>
+                            </div>
+                        </li>
+                    <% }) %>
+                </ul>
+            <% } else { %>
+                <div class="p-4 text-center text-gray-500">
+                    <p class="font-medium">Please add some tasks</p>
+                </div>
+            <% } %>
+        </div>
     </div>
+
+    <script src="//unpkg.com/@preline/overlay@1.5.0/dist/overlay.min.js"></script>
+    <script>
+        async function checkServiceHealth() {
+            try {
+                // Check Todo App health (current page)
+                const todoAppStatus = document.getElementById('todo-app-status');
+                if (window.location.href) {
+                    todoAppStatus.innerHTML = `
+                        <span class="flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-green-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                        </span>
+                        <span class="ml-2 text-sm text-green-600">Running</span>
+                    `;
+                }
+
+                // Check MongoDB connection through the backend
+                const mongoStatus = document.getElementById('mongodb-status');
+                const response = await fetch('/health');
+                const data = await response.json();
+                
+                if (data.mongodb === 'connected') {
+                    mongoStatus.innerHTML = `
+                        <span class="flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-green-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                        </span>
+                        <span class="ml-2 text-sm text-green-600">Running</span>
+                    `;
+                } else {
+                    mongoStatus.innerHTML = `
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                        <span class="ml-2 text-sm text-red-600">Offline</span>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error checking service health:', error);
+            }
+        }
+
+        // Check health status every 30 seconds
+        checkServiceHealth();
+        setInterval(checkServiceHealth, 30000);
+    </script>
 </body>
 
 </html>
