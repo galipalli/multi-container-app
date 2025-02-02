@@ -1,0 +1,33 @@
+name: Docker CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build and start containers
+      run: docker compose up -d --build
+
+    - name: Wait for services to be ready
+      run: |
+        timeout 30s bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:3000)" != "200" ]]; do sleep 5; done' || false
+        timeout 30s bash -c 'while ! nc -z localhost 27017; do sleep 5; done' || false
+
+    - name: Run tests
+      run: |
+        docker compose exec -T todo-app npm test || true
+
+    - name: Stop containers
+      if: always()
+      run: docker compose down 

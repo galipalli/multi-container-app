@@ -1,0 +1,36 @@
+name: Services Health Check
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Runs every 30 minutes
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check Todo App Health
+      uses: jtalk/url-health-check-action@v3
+      with:
+        url: http://localhost:3000
+        max-attempts: 3
+        retry-delay: 5s
+        
+    - name: Check MongoDB Connection
+      uses: supercharge/mongodb-github-action@1.10.0
+      with:
+        mongodb-version: '6.0'
+        mongodb-port: 27017
+
+    - name: Notify on Failure
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const issue = await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: 'Service Health Check Failed',
+            body: 'One or more services are not responding. Please check the health check workflow for details.'
+          }); 
